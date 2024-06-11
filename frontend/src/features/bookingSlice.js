@@ -8,6 +8,7 @@ const initialState = {
   deleteBooking: null,
   booking: null,
   bookings: [],
+  bookedDays: [],
   isError: false,
   isSuccess: false,
   isLoading: false,
@@ -31,6 +32,18 @@ export const fetchBookings = createAsyncThunk(
   async (_, thunkAPI) => {
     try {
       return await bookingService.fetchBookings();
+    } catch (error) {
+      const message = error.message || error;
+      return thunkAPI.rejectWithValue(message);
+    }
+  }
+);
+
+export const fetchAllBookedDays = createAsyncThunk(
+  "booking/fetchAllBookedDays",
+  async (_, thunkAPI) => {
+    try {
+      return await bookingService.fetchAllBookedDays();
     } catch (error) {
       const message = error.message || error;
       return thunkAPI.rejectWithValue(message);
@@ -123,14 +136,31 @@ export const bookingSlice = createSlice({
       .addCase(fetchBookings.pending, (state) => {
         state.isLoading = true;
       })
+      //here
       .addCase(fetchBookings.fulfilled, (state, { payload }) => {
-        state.bookings = payload.data;
+        state.bookings = payload.Bookings;
         state.isLoading = false;
         state.isSuccess = true;
         state.isError = false;
         state.message = payload.message;
       })
       .addCase(fetchBookings.rejected, (state, { payload }) => {
+        state.isLoading = false;
+        state.isSuccess = false;
+        state.isError = true;
+        state.message = payload;
+      })
+      .addCase(fetchAllBookedDays.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(fetchAllBookedDays.fulfilled, (state, { payload }) => {
+        state.bookedDays = payload.Bookings;
+        state.isLoading = false;
+        state.isSuccess = true;
+        state.isError = false;
+        state.message = payload.message;
+      })
+      .addCase(fetchAllBookedDays.rejected, (state, { payload }) => {
         state.isLoading = false;
         state.isSuccess = false;
         state.isError = true;

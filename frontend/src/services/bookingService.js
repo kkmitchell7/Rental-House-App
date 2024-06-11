@@ -29,6 +29,33 @@ const createBooking = async (booking) => {
         "Content-Type": "application/json",
       },
     });
+
+
+  
+    if (!response.ok) {
+      try {
+        let res = await response.json();
+        throw res.message || JSON.stringify(res);
+      } catch (err) {
+        console.log(err);
+        const error = new Error("Something went wrong");
+        throw error.message;
+      }
+    }
+  
+    const bookingApiData = await response.json();
+    return bookingApiData;
+  };
+
+  const fetchAllBookedDays = async () => {
+    const response = await fetch("http://localhost:8000/api/allbookeddays", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+
   
     if (!response.ok) {
       try {
@@ -121,7 +148,8 @@ const createBooking = async (booking) => {
     fetchBookings,
     fetchBookingByID,
     updateBooking,
-    deleteBooking
+    deleteBooking,
+    fetchAllBookedDays
 
   };
   

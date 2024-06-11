@@ -11,13 +11,19 @@ from rest_framework.authtoken.models import Token
 from rest_framework_simplejwt.tokens import RefreshToken
 
 class AuthApiView(APIView):
-    def get(self,request, id):
-        try:
-            user = User.objects.get(pk=id)
-            serializer = UserSerializer(user)
-            return Response({"Message":"Returned user by id.", "User":serializer.data})
-        except User.DoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
+    serializer_class=UserSerializer
+    def get(self,request, id=None):
+        if id is not None:
+            try:
+                user = User.objects.get(pk=id)
+                serializer = UserSerializer(user)
+                return Response({"Message":"Returned user by id.", "User":serializer.data})
+            except User.DoesNotExist:
+                return Response(status=status.HTTP_404_NOT_FOUND)
+        else:
+            allUsers = User.objects.all().values()
+            serializer = UserSerializer(allUsers, many=True)
+            return Response({"Message":"Returned all users.", "Users":serializer.data})
     def put(self,request, id):
         try:
             user = User.objects.get(pk=id)
@@ -31,10 +37,12 @@ class AuthApiView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class LoginApiView(APIView):
+    serializer_class=LoginSerializer
     def post(self,request):
         serializer = LoginSerializer(data=request.data)
         if serializer.is_valid():
             email = serializer.validated_data['email']
+            #need to do hashing here so that only store hashed passwords
             password = serializer.validated_data['password']
 
             # Check if user exists
@@ -62,9 +70,10 @@ class LoginApiView(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class RegisterApiView(APIView):
+    serializer_class=UserSerializer
     def post (self,request):
         data = request.data
-        required_fields = ['first_name', 'last_name', 'email', 'bio', 'password']
+        required_fields = ['first_name', 'last_name', 'email', 'password']
 
         # Check if all required fields are present
         for field in required_fields:
