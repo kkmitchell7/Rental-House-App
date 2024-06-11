@@ -1,0 +1,18 @@
+Frontend
+- React
+
+Backend
+- Django
+
+
+How it all works:
+
+Frontend
+- components which are reused
+- pages are where the components and everything are put together
+- app.jsx is what actually renders the app
+- perform API calls in the services
+
+Backend
+- each app is a different database model and set of API handling
+- views is where we handle API calls
