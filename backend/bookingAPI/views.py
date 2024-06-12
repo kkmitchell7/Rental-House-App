@@ -37,6 +37,7 @@ class BookingApiView(APIView):
                                     payment_bool = serializer.data.get("payment_bool"),
                                     price_paid = serializer.data.get("price_paid"),
                                     stripe_checkout_id = serializer.data.get("stripe_checkout_id"))
+            #need to add the booking to the app user's list of bookings!!
             return Response({"Message":"Created booking.","Booking":serializer.data})
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

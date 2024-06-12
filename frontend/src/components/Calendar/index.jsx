@@ -27,7 +27,7 @@ export default function Calendar() {
 
 
   useEffect(() => {
-    dispatch(fetchAllBookedDays());
+    dispatch(fetchAllBookedDays()); //should change so we only fetch all booked days for the current month & make refetch when we click the button?
     return () => {
         dispatch(resetBooking());
       };
@@ -40,6 +40,10 @@ export default function Calendar() {
     const [days, setDays] = useState([]);
     const [currentDate, setCurrentDate] = useState('');
 
+    const [isAllowedToBook, setIsAllowedToBook] = useState(false);
+    const [startDate, setStartDate] = useState(null);
+    const [endDate, setEndDate] = useState(null);
+
 
     // storing full name of all months in array
     const months = ["January", "February", "March", "April", "May", "June", "July",
@@ -50,7 +54,107 @@ export default function Calendar() {
         const date2 = new Date(todayStr);
         return date1 < date2;
         };
+
+    const handlePrevClick = () => {
+      if (currMonth === 0) {
+        setCurrMonth(11);
+        setCurrYear(currYear - 1);
+      } else {
+        setCurrMonth(currMonth - 1);
+      }
+    };
+  
+    const handleNextClick = () => {
+      if (currMonth === 11) {
+        setCurrMonth(0);
+        setCurrYear(currYear + 1);
+      } else {
+        setCurrMonth(currMonth + 1);
+      }
+    };
+
+    function isDateBeforeDate(date1, date2) { // Takes in Date objects
+          // Ensure the inputs are Date objects
+          if (!(date1 instanceof Date) || !(date2 instanceof Date)) {
+              throw new Error('Both arguments must be Date objects');
+          }
+      
+          // Get time values in milliseconds
+          const time1 = date1.getTime();
+          const time2 = date2.getTime();
+      
+          // Compare the time values
+          return time1 < time2;
+    }
+
+    function generateDateRange(startDate, endDate) {
+      // Copy the start date to avoid mutating the original object
+      const current = new Date(startDate);
+      const dates = [];
+  
+      // Iterate through dates starting from startDate to endDate
+      while (current <= endDate) {
+          dates.push(new Date(current)); // Push a new Date object to the array
+          current.setDate(current.getDate() + 1); // Move to the next day
+      }
+  
+      return dates;
+  }
+  function checkDateRangeNotBooked(startDate,endDate){
+    let allDates = generateDateRange(startDate,endDate)
+    const isAnyBooked = allDates.some((element) => {
+      const dateString = element.toISOString().slice(0, 10);
+      console.log(dateString);
+      return bookedDays.includes(dateString);
+    });
+    if (isAnyBooked) {
+      console.log("returning false");
+      return false; // Date range has a booked day
+    } else {
+      console.log("returning true");
+      return true; // Date range has no booked days
+  }
+  }
+
+
     const renderCalendar = () => {
+      let clickCounter = 0;
+      let lastclickedstart = null;
+      let lastclickedend = null;
+      const handleDayClick = (event, date) => {
+  
+        const clickedObject = event.currentTarget;
+        let clickedFullDate = new Date(date);
+
+        if (isDateBeforeDate(new Date(),clickedFullDate)) { //check to make sure the date isn't in the past
+
+              //Otherwise date range is free, so either modify startDate or endDate varibles
+
+              if (clickCounter === 0){ //modify startDate
+                  if (startDate === null || (endDate !== null && isDateBeforeDate(clickedFullDate,endDate) && clickedFullDate.toString() !== startDate.toString())){
+                      setStartDate(clickedFullDate);
+                      clickedObject.classList.add("selected"); 
+                      if (lastclickedstart !== null) {
+                          // Remove the class from the previously clicked object
+                          lastclickedstart.classList.remove("selected");
+                      }
+                      lastclickedstart = clickedObject;
+                  }
+              } else if (clickCounter === 1){ //modify endDate
+                  if (endDate === null || (startDate !== null && isDateBeforeDate(startDate,clickedFullDate) && clickedFullDate.toString() !== endDate.toString())){
+                      setEndDate(clickedFullDate);
+                      clickedObject.classList.add("selected");
+                      if (lastclickedend !== null) {
+                          // Remove the class from the previously clicked object
+                          lastclickedend.classList.remove("selected");
+                      }
+                      lastclickedend = clickedObject;
+                  }  
+              }
+          }
+        clickCounter = (clickCounter + 1) % 2;
+      };
+
         let firstDayOfMonth = new Date(currYear, currMonth, 1).getDay();
         let lastDateOfMonth = new Date(currYear, currMonth + 1, 0).getDate();
         let lastDayOfMonth = new Date(currYear, currMonth, lastDateOfMonth).getDay();
@@ -75,7 +179,7 @@ export default function Calendar() {
 
             let isBeforeToday = isDateBeforeToday(dataId, new Date().toISOString().split('T')[0]) ? "past" : "";
     
-            liTag.push(<li key={dataId} className={`inactive ${isBeforeToday} ${isBookedClass}`} data-id={dataId}>
+            liTag.push(<li key={dataId} className={`inactive ${isBeforeToday} ${isBookedClass}`} data-id={dataId} onClick={(event) => handleDayClick(event, dataId)}>
             {lastDateOfLastMonth - i + 1}
             </li>);
         }
@@ -93,7 +197,7 @@ export default function Calendar() {
             let isToday = i === new Date().getDate() && currMonth === new Date().getMonth() && currYear === new Date().getFullYear() ? "active" : "";
             let isBeforeToday = isDateBeforeToday(dataId, new Date().toISOString().split('T')[0]) ? "past" : "";
     
-            liTag.push(<li key={dataId} className={`${isToday} ${isBookedClass} ${isBeforeToday}`} data-id={dataId}>
+            liTag.push(<li key={dataId} className={`${isToday} ${isBookedClass} ${isBeforeToday}`} data-id={dataId} onClick={(event) => handleDayClick(event, dataId)}>
             {i}
             </li>);
         }
@@ -114,10 +218,11 @@ export default function Calendar() {
             }
             let isBeforeToday = isDateBeforeToday(dataId, new Date().toISOString().split('T')[0]) ? "past" : "";
     
-            liTag.push(<li key={dataId} className={`inactive ${isBeforeToday} ${isBookedClass}`} data-id={dataId}>
+            liTag.push(<li key={dataId} className={`inactive ${isBeforeToday} ${isBookedClass}`} data-id={dataId} onClick={(event) => handleDayClick(event, dataId)}>
             {i - lastDayOfMonth + 1}
             </li>);
         }
+
     
         setDays(liTag);
         setCurrentDate(`${months[currMonth]} ${currYear}`);
@@ -128,151 +233,13 @@ export default function Calendar() {
         console.log(bookedDays)
     }, [currMonth, currYear, bookedDays]);
 
-    const handlePrevClick = () => {
-        if (currMonth === 0) {
-          setCurrMonth(11);
-          setCurrYear(currYear - 1);
-        } else {
-          setCurrMonth(currMonth - 1);
-        }
-      };
-    
-      const handleNextClick = () => {
-        if (currMonth === 11) {
-          setCurrMonth(0);
-          setCurrYear(currYear + 1);
-        } else {
-          setCurrMonth(currMonth + 1);
-        }
-      };
-
-
-    let endDate = null;
-    let startDate = null;
-    let clickCounter = 0;
-    let lastclickedstart = null;
-    let lastclickedend = null;
-
-    //document.getElementById('day').addEventListener('click', function(event) {
-        
-        //what i need to do here is be able to know which date was clicked on and assign that as start date, end date
-        /*
-        var clickedObject = event.target;
-        var clickedFullDate = clickedObject.getAttribute('data-id'); //String of the date
-        console.log(clickedFullDate)
-        var clickedDate = new Date(clickedFullDate + " 00:00:00");
-        console.log(clickedDate) 
-
-        
-
-        //Every other click updates either the startDate or endDate
-        if (clickedFullDate != null && is_date1_before_date2(new Date().toString(),clickedFullDate)) { //check to make sure we haven't clicked the same date or the contianer
-            if (clickedObject.classList.contains("booked") === false){
-                if (clickCounter === 0){
-                    if (startDate === null || (endDate !== null && is_date1_before_date2(clickedFullDate,endDate.toString()) && clickedDate.toString() !== startDate.toString())){
-                        startDate = clickedDate;
-                        clickedObject.classList.add("selected"); 
-                        if (lastclickedstart !== null) {
-                            // Remove the class from the previously clicked object
-                            lastclickedstart.classList.remove("selected");
-                        }
-                        lastclickedstart = clickedObject;
-                    }
-                } else if (clickCounter === 1){
-                    if (endDate === null || (startDate !== null && is_date1_before_date2(startDate.toString(),clickedFullDate) && clickedDate.toString() !== endDate.toString())){
-                        endDate = clickedDate;
-                        clickedObject.classList.add("selected");
-                        if (lastclickedend !== null) {
-                            // Remove the class from the previously clicked object
-                            lastclickedend.classList.remove("selected");
-                        }
-                        lastclickedend = clickedObject;
-                    }  
-                }
-            }
-        }
-        
-        
-        //Change text based on date selected
-        var displayStartDate = document.getElementById('displayStartDate');
-        var displayEndDate = document.getElementById('displayEndDate');
-        if (startDate != null){
-            displayStartDate.textContent = 'Start date:' + startDate.toString() +"\n";
-        }
-        if (endDate != null){
-            displayEndDate.textContent = 'End date:' + endDate.toString();
-        }
-        
-
-        if (startDate != null && endDate != null){
-            var daysCalc = calculateDays(startDate,endDate);
-            //displayPrice.textContent = ' Price:' + Math.ceil(daysCalc * 200);
-
-            //send the info to views so stripe can use this quanity info
-            
-            var xhr = new XMLHttpRequest();
-            xhr.onreadystatechange = function() {
-                if (this.readyState === 4 && this.status === 200) {
-                var l = null;
-                }
-            };
-            xhr.open("POST", 'add', true); //"{% url 'Book Now' %}" issue is here!!
-            xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-            //xhr.setRequestHeader("X-CSRFToken", csrftoken);
-
-            var postData = "request_type=return_days"+ 
-                "&num_days=" + encodeURIComponent(daysCalc) + 
-                "&start_date=" + encodeURIComponent(startDate)+
-                    "&end_date=" + encodeURIComponent(endDate);
-
-            xhr.send(postData); //need to send start & end dates here!!
-        }
-        
-
-
-        // Toggle the visibility of the start date text
-        
-        if (startDate != null) {
-            displayStartDate.style.display = 'block';
-        }
-
-        if (endDate != null) {
-            displayEndDate.style.display = 'block';
-            //displayPrice.style.display = 'block';
-        }
-        
-
-
-
-        clickCounter = (clickCounter + 1) % 2; //Reset after second click
-    });
-
-
-    function calculateDays(sDate,eDate) { //Takes in Date objects
-
-        // Calculate the difference in days
-        const timeDifference = eDate.getTime() - sDate.getTime();
-        const daysDifference = (timeDifference / (1000 * 60 * 60 * 24));
-
-        return daysDifference //Return days
-    }
-
-    function is_date1_before_date2(strd1,strd2) { //Takes in string of date
-
-        // Calculate the difference in days
-        let d1 = new Date(strd1)
-        let d2 = new Date(strd2)
-        const timeDifference = d1.getTime() - d2.getTime();
-        const daysDifference = (timeDifference / (1000 * 60 * 60 * 24))*-1;
-
-        if (daysDifference > 0){ 
-            return true;
-        } else if (daysDifference <= 0){
-            return false;
-        }
-    }
-
-      */
+    useEffect(() => {
+      if (startDate && endDate){
+        console.log("startdate: ",startDate)
+        console.log("enddate: ",endDate)
+        setIsAllowedToBook(checkDateRangeNotBooked(startDate,endDate));
+      }
+    }, [startDate,endDate]);
 
     return(
     <div className="row m-5">
@@ -301,6 +268,11 @@ export default function Calendar() {
         <header>
             <p className="current-date"> Book Now </p>
         </header>
+        {isAllowedToBook ? (
+        <p>Button here</p>
+        ) : (
+        <p>Please select a valid date range.</p>
+        )}
       </div>
     </div>
     )
