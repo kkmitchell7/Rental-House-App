@@ -9,7 +9,7 @@ const register = async (userData) => {
   
     if (!response.ok) {
       let res = await response.json();
-      return res;
+      throw new Error(res.message || 'Something went wrong');
     }
   
     const responseData = await response.json();
@@ -28,7 +28,7 @@ const register = async (userData) => {
   
     if (!response.ok) {
       let res = await response.json();
-      return res;
+      throw new Error(res.message || 'Something went wrong');
     }
   
     const responseData = await response.json();
@@ -36,9 +36,9 @@ const register = async (userData) => {
     return responseData;
   };
   
-  const getUser = async (authorId) => {
+  const getUser = async (userId) => {
     const response = await fetch(
-      `http://localhost:8000/api/auth/user/${authorId}`
+      `http://localhost:8000/api/auth/user/${userId}`
     );
   
     if (!response.ok) {

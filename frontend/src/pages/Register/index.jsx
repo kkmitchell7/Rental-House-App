@@ -1,30 +1,39 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
 
 import "./index.css";
 
 import SuccessToast from "../../components/SuccessToast";
 import ErrorToast from "../../components/ErrorToast";
 import Loading from "../../components/Loading";
-import authService from "../../services/authService";
+
+
+import { register, reset } from "../../features/authSlice";
 
 export default function RegisterPage() {
   const navigate = useNavigate();
-  const [isSuccess, setIsSuccess] = useState(false);
-  const [isError, setIsError] = useState(false);
-  const [message, setMessage] = useState("");
-  const [loading, setLoading] = useState(false);
+  const dispatch = useDispatch();
+  const { user, isError, isSuccess, isLoading, message } = useSelector(
+    (state) => state.auth
+  );
 
   const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
-    bio: "",
+    first_name: "",
+    last_name: "",
     email: "",
     password: "",
   });
 
-  const { firstName, lastName, bio, email, password } = formData;
+  const { first_name, last_name, email, password } = formData;
 
+  useEffect(() => {
+    if (isSuccess || user) {
+      navigate("/home");
+    }
+  }, [user, isError, isSuccess, isLoading, message, navigate]);
+
+  
   const onChange = (e) => {
     setFormData((prevState) => ({
       ...prevState,
@@ -34,26 +43,10 @@ export default function RegisterPage() {
 
   const onSubmit = async (e) => {
     e.preventDefault();
-    try {
-      setLoading(true);
-      const res = await authService.register(formData);
-      setMessage(res.message);
-      if (res.message === "User already exists" || res.message === "All fields are required"){
-        setIsSuccess(false);
-        setLoading(false);
-      } else {
-        setIsSuccess(true);
-        navigate("/home");
-        setLoading(false);
-      }
-    } catch (err) {
-      setMessage(err);
-      setIsError(true);
-      setLoading(false);
-    }
+    dispatch(register(formData));
   };
 
-  if (loading) {
+  if (isLoading) {
     return <Loading />;
   }
 
@@ -62,42 +55,30 @@ export default function RegisterPage() {
       <div className="html-body">
         <main className="form-signin">
           <form onSubmit={onSubmit}>
-            <h1 className="h3 mb-3 fw-normal">Author registration</h1>
+            <h1 className="h3 mb-3 fw-normal">Register</h1>
             <div className="form-floating">
               <input
                 type="text"
                 className="form-control"
-                id="firstName"
-                name="firstName"
+                id="first_name"
+                name="first_name"
                 placeholder="Joe"
-                value={firstName}
+                value={first_name}
                 onChange={onChange}
               />
-              <label htmlFor="firstName">First name</label>
+              <label htmlFor="first_name">First name</label>
             </div>
             <div className="form-floating">
               <input
                 type="text"
                 className="form-control"
-                id="lastName"
-                name="lastName"
+                id="last_name"
+                name="last_name"
                 placeholder="Soap"
-                value={lastName}
+                value={last_name}
                 onChange={onChange}
               />
-              <label htmlFor="lastName">Last name</label>
-            </div>
-            <div className="form-floating">
-              <textarea
-                type="text"
-                className="form-control"
-                id="bio"
-                name="bio"
-                placeholder="name@example.com"
-                value={bio}
-                onChange={onChange}
-              />
-              <label htmlFor="bio">Bio</label>
+              <label htmlFor="last_name">Last name</label>
             </div>
             <div className="form-floating">
               <input
@@ -130,7 +111,7 @@ export default function RegisterPage() {
               Login
             </Link>
             <p className="mt-5 mb-3 text-muted text-center">
-              The Blog App &copy; 2024
+              The Red Cottage 2024
             </p>
           </form>
         </main>
@@ -139,14 +120,14 @@ export default function RegisterPage() {
         show={isSuccess}
         message={message}
         onClose={() => {
-          setIsSuccess(false);
+          dispatch(reset());
         }}
       />
       <ErrorToast
         show={isError}
         message={message}
         onClose={() => {
-          setIsError(false);
+          dispatch(reset());
         }}
       />
     </>

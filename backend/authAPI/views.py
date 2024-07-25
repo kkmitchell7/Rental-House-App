@@ -10,6 +10,7 @@ from .serializers import *
 from rest_framework.authtoken.models import Token
 from rest_framework_simplejwt.tokens import RefreshToken
 
+
 class AuthApiView(APIView):
     serializer_class=UserSerializer
     def get(self,request, id=None):
@@ -62,7 +63,9 @@ class LoginApiView(APIView):
             res_user = {
                 'id': user.id,
                 'email': user.email,
-                'token': access_token
+                'token': access_token,
+                'firstName': user.first_name,
+                'lastName': user.last_name
             }
 
             return Response({'message': 'Login successful!', 'data': res_user}, status=status.HTTP_200_OK)
@@ -88,24 +91,21 @@ class RegisterApiView(APIView):
         serializer = UserSerializer(data=data)
         if serializer.is_valid():
             # Save the new user
-            user = User.objects.create(
-                id=serializer.validated_data.get("id"),
-                first_name=serializer.validated_data.get("first_name"),
-                last_name=serializer.validated_data.get("last_name"),
-                email=serializer.validated_data.get("email"),
-                image=serializer.validated_data.get("image"),
-                password=serializer.validated_data.get("password"),
-            )
+            user = serializer.save()
+            print(type(user))
 
-            # Generate token (optional)
-            token, created = Token.objects.get_or_create(user=user)
 
-            response_data = serializer.data
-            response_data['token'] = token.key
+            refresh = RefreshToken.for_user(user)
+            access_token = str(refresh.access_token)
 
-            # Remove password from response for security
-            response_data.pop('password', None)
+            res_user = {
+                'id': user.id,
+                'email': user.email,
+                'firstName': user.first_name,
+                'lastName': user.last_name,
+                'token': access_token
+            }
 
-            return Response({'message': 'New user created!', 'data': response_data}, status=status.HTTP_201_CREATED)
+            return Response({'message': 'New user created!', 'data': res_user}, status=status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

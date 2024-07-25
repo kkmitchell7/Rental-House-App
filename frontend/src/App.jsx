@@ -11,6 +11,7 @@ import HomePage from "./pages/Home";
 import BookNowPage from "./pages/BookNow";
 import LoginPage from "./pages/Login";
 import RegisterPage from "./pages/Register";
+import ProfilePage from "./pages/Profile";
 
 const routes = [
   {
@@ -32,6 +33,10 @@ const routes = [
   {
     path: "/register",
     element: <RegisterPage />,
+  },
+  {
+    path: "/profile/:userId?",
+    element: <ProfilePage />,
   },
 ];
 const router = createBrowserRouter(routes);

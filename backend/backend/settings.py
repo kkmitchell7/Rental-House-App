@@ -27,7 +27,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
-
+AUTH_USER_MODEL = 'authAPI.User'
 # Application definition
 
 INSTALLED_APPS = [
@@ -40,7 +40,9 @@ INSTALLED_APPS = [
     'rest_framework',
     'corsheaders',
     'authAPI',
-    'bookingAPI'
+    'bookingAPI',
+    'rest_framework.authtoken',
+    'django.contrib.auth.hashers'
 ]
 
 MIDDLEWARE = [
