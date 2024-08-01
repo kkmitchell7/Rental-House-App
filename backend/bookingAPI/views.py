@@ -67,7 +67,7 @@ class BookingApiView(APIView):
         booking.delete()
         return Response({"Message":"Booking deleted successfully by id"})
 
-#Returns all bookings from the passed in month as well as from the previous and next month    
+#Returns all bookings within the next 12 months 
 class AllBookedDaysApiView(APIView):
     serializer_class=BookingSerializer
     def get(self,request):

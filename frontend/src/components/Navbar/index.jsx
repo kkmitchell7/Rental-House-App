@@ -39,7 +39,7 @@ export default function Navbar() {
                           <Link
                             className=" dropdown-item"
                             aria-current="page"
-                            to={"/profile/" + user.id}
+                            to={"/profile"}
                           >
                             Profile
                           </Link>

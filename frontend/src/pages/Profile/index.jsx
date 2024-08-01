@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 
 import Navbar from "../../components/Navbar";
@@ -15,7 +14,6 @@ import {
 
 
 export default function ProfilePage() {
-  const { userId } = useParams();
 
   const dispatch = useDispatch();
 
@@ -32,12 +30,30 @@ export default function ProfilePage() {
     bookings
     } = useSelector((state) => state.booking);
 
+  useEffect(() => {
+    // Check to see if this is a redirect back from Checkout
+    const query = new URLSearchParams(window.location.search);
+
+    if (query.get("success")) {
+      setMessage("Order placed! You will receive an email confirmation.");
+      setIsSuccess(true);
+      setIsError(false);
+    }
+
+    if (query.get("canceled")) {
+      setMessage(
+        "Order canceled -- continue to shop around and checkout when you're ready."
+      );
+      setIsSuccess(false);
+      setIsError(true);
+    }
+  }, []);
 
   useEffect(() => {
     const fetchUserBookings = async () => {
       try {
         setIsLoading(true);
-        dispatch(fetchBookingByUser(userId));
+        dispatch(fetchBookingByUser(user.id));
         setIsLoading(false);
       } catch (error) {
         setIsError(true);
@@ -46,7 +62,7 @@ export default function ProfilePage() {
       }
     };
     fetchUserBookings();
-  }, [userId]);
+  }, [dispatch, user.id]);
 
 
   const resetSuccess = () => {

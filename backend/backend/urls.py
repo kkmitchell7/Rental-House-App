@@ -20,7 +20,8 @@ from bookingAPI import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/', include('authAPI.urls')),
-    path('api/', include('bookingAPI.urls'))
+    path('api/auth/', include('authAPI.urls')),
+    path('api/', include('bookingAPI.urls')),
+    path('api/stripe/', include('paymentsAPI.urls'))
 
 ]

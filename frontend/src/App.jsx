@@ -35,7 +35,7 @@ const routes = [
     element: <RegisterPage />,
   },
   {
-    path: "/profile/:userId?",
+    path: "/profile",
     element: <ProfilePage />,
   },
 ];

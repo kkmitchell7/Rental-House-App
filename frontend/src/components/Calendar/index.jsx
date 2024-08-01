@@ -1,6 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useDispatch, useSelector } from "react-redux";
 
+import ProductDisplay from '../ProductDisplay';
+
 import "./index.css";
 
 import {
@@ -28,6 +30,8 @@ export default function Calendar() {
       user,
     } = useSelector((state) => state.auth);
 
+    const priceOfANight = 200;
+
     const [currMonth, setCurrMonth] = useState(new Date().getMonth());
     const [currYear, setCurrYear] = useState(new Date().getFullYear());
     const [days, setDays] = useState([]);
@@ -36,6 +40,9 @@ export default function Calendar() {
     const [isAllowedToBook, setIsAllowedToBook] = useState(false);
     const [startDate, setStartDate] = useState(null);
     const [endDate, setEndDate] = useState(null);
+
+    const [price, setPrice] = useState(0);
+    const [numberNights, setNumberNights] = useState(0);
 
     const clickCounterRef = useRef(0);
 
@@ -72,6 +79,27 @@ export default function Calendar() {
     }
 
     const isDateBetween = (startDate, endDate, date) => date >= startDate && date < endDate;
+
+    function getNumberOfNights(startDate, endDate) {
+      // Ensure the dates are valid Date objects
+      if (!(startDate instanceof Date) || !(endDate instanceof Date)) {
+        throw new Error("Invalid input: startDate and endDate must be Date objects.");
+      }
+    
+      // Get the time in milliseconds for both dates
+      const startTime = startDate.getTime();
+      const endTime = endDate.getTime();
+    
+      // Calculate the difference in milliseconds
+      const timeDifference = endTime - startTime;
+    
+      // Convert milliseconds to days
+      const millisecondsInADay = 1000 * 60 * 60 * 24;
+      const numberOfDays = timeDifference / millisecondsInADay;
+    
+      // Return the number of nights (same as the number of days)
+      return numberOfDays;
+    }
 
     const handlePrevClick = () => {
       if (currMonth === 0) {
@@ -236,8 +264,11 @@ export default function Calendar() {
         console.log("startdate: ",startDate)
         console.log("enddate: ",endDate)
         setIsAllowedToBook(checkDateRangeNotBooked(startDate,endDate)); //also limit booking to only 12 months in advance
+        setNumberNights(getNumberOfNights(startDate,endDate));
+        setPrice(getNumberOfNights(startDate,endDate) * priceOfANight);
       }
     }, [startDate,endDate]);
+
 
     return(
     <div className="row m-5">
@@ -262,19 +293,19 @@ export default function Calendar() {
           <ul id="day" className="days">{days}</ul>
         </div>
       </div>
-      <div className="column-md-2 wrapper m-5" style={{width: '30%', height: '400px', marginLeft:'50px'}}>
-        <header>
-            <p className="current-date"> Book Now </p>
-        </header>
+      <div className="column-md-2 wrapper" style={{width: '30%', height: '400px', marginLeft:'50px'}}>
+        <h4 className="mx-2 my-4">Book Now</h4>
+        <div className="mx-2">
         {user ? (
         isAllowedToBook ? (
-          <p>Button here</p>
+          <ProductDisplay price={price} numberNights={numberNights} startDate={startDate} endDate={endDate} appUserId={user.id} />
         ) : (
           <p>Please select a valid date range.</p>
         )
         ) : (
           <p>Please login.</p>
         )}
+        </div>
       </div>
       <p>* Please note bookings are only allowed 12 months in advance.</p>
     </div>
