@@ -43,7 +43,7 @@ export const fetchAllBookedDays = createAsyncThunk(
   "booking/fetchAllBookedDays",
   async (month, thunkAPI) => {
     try {
-      return await bookingService.fetchAllBookedDays(month);
+      return await bookingService.fetchAllBookedDays();
     } catch (error) {
       const message = error.message || error;
       return thunkAPI.rejectWithValue(message);

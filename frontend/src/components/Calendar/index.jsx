@@ -41,13 +41,11 @@ export default function Calendar() {
 
 
     useEffect(() => {
-      const monthShifted = currMonth +1;
-      const monthCombo = currYear + "-" + monthShifted;
-      dispatch(fetchAllBookedDays(monthCombo)); //needs to be YEAR-MONTH
+      dispatch(fetchAllBookedDays()); 
       return () => {
           dispatch(resetBooking());
         };
-    }, [currMonth, currYear, dispatch]);
+    }, [dispatch]);
 
     // storing full name of all months in array
     const months = ["January", "February", "March", "April", "May", "June", "July",
@@ -125,7 +123,11 @@ export default function Calendar() {
       let clickedFullDate = new Date(date);
       clickedFullDate.setDate(clickedFullDate.getDate() + 1);
 
-      if (isDateBeforeDate(new Date(),clickedFullDate)) { //check to make sure the date isn't in the past
+      const currentDate = new Date();
+      const maxDate = new Date(currentDate);
+      maxDate.setMonth(maxDate.getMonth() + 12);
+
+      if (isDateBeforeDate(new Date(),clickedFullDate) && isDateBeforeDate(clickedFullDate, maxDate)) { //check to make sure the date isn't in the past or more than 12 months in future
 
             //Otherwise date range is free, so either modify startDate or endDate varibles
 
@@ -233,7 +235,7 @@ export default function Calendar() {
       if (startDate && endDate){
         console.log("startdate: ",startDate)
         console.log("enddate: ",endDate)
-        setIsAllowedToBook(checkDateRangeNotBooked(startDate,endDate));
+        setIsAllowedToBook(checkDateRangeNotBooked(startDate,endDate)); //also limit booking to only 12 months in advance
       }
     }, [startDate,endDate]);
 
@@ -274,6 +276,7 @@ export default function Calendar() {
           <p>Please login.</p>
         )}
       </div>
+      <p>* Please note bookings are only allowed 12 months in advance.</p>
     </div>
     )
 }

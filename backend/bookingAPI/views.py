@@ -70,40 +70,23 @@ class BookingApiView(APIView):
 #Returns all bookings from the passed in month as well as from the previous and next month    
 class AllBookedDaysApiView(APIView):
     serializer_class=BookingSerializer
-    def get(self,request, month):
-
-        if not month:
-            return Response({"Message": "Month parameter is missing"}, status=400)
+    def get(self,request):
+        current_date = datetime.now()
         
-        try:
-            month_date = datetime.strptime(month, '%Y-%m')
-        except ValueError:
-            return Response({"Message": "Invalid month format. Use YYYY-MM"}, status=400)
-
-        #allBookings = Booking.objects.filter(
-        #    Q(start_date__year=month_date.year, start_date__month=month_date.month) |
-        #    Q(end_date__year=month_date.year, end_date__month=month_date.month)
-        #)
-        current_month_start = month_date.replace(day=1)
-        next_month_start = (current_month_start + relativedelta(months=1)).replace(day=1)
-        prev_month_start = (current_month_start - relativedelta(months=1)).replace(day=1)
+        start_date = current_date.replace(day=1)
+        end_date = (start_date + relativedelta(months=12)).replace(day=1) - timedelta(days=1)
         
-        next_month_end = next_month_start + relativedelta(months=1) - timedelta(days=1)
-        prev_month_end = current_month_start - timedelta(days=1)
-        current_month_end = next_month_start - timedelta(days=1)
-
-        # Filter bookings for the three months
+        # Filter bookings within the next 12 months
         allBookings = Booking.objects.filter(
-            Q(start_date__gte=prev_month_start, start_date__lte=next_month_end) |
-            Q(end_date__gte=prev_month_start, end_date__lte=next_month_end)
+            Q(start_date__gte=start_date, start_date__lte=end_date) |
+            Q(end_date__gte=start_date, end_date__lte=end_date)
         ).distinct()
-        serializer = BookingSerializer(allBookings, many=True)
-
+        
         booked_days = []
         for booking in allBookings:
             booked_days.extend(booking.get_all_dates())
-
-        return Response({"Message":"Returned all bookings.", "Bookings":booked_days})
+        
+        return Response({"Message": "Returned all bookings for the next 12 months.", "Bookings": booked_days})
     
 class UserBookedDaysApiView(APIView):
     serializer_class=BookingSerializer

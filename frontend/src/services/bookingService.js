@@ -47,8 +47,8 @@ const createBooking = async (booking) => {
     return bookingApiData;
   };
 
-  const fetchAllBookedDays = async (month) => {
-    const response = await fetch(`http://localhost:8000/api/booking/allbookeddays/${month}`, {
+  const fetchAllBookedDays = async () => {
+    const response = await fetch(`http://localhost:8000/api/allbookeddays`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
