@@ -1,7 +1,8 @@
+from backend.keys import *
 
 import stripe
 # This is your test secret API key.
-stripe.api_key = 'sk_test_51OxblLHXdx6cDJJLDEOpscCt2MWSy5fhDJoZ6KjIfqc4BVeLOuqYj9Wmg0vakAYm4ycd98YZI0K4WjNqWIEu4aJl00SVHufh4r'
+stripe.api_key = 
 
 app = Flask(__name__,
             static_url_path='',
